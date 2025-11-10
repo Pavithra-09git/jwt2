@@ -6,11 +6,13 @@ import profiles from "../models/profiles.js";
 
 const router = express.Router();
 
-const loginLimiter = rateLimit({
-  windowMs: 20 * 60 * 1000, // 20 mins
-  max: 5,
-  message: "Too many requests, try again later",
-});
+
+  rateLimit({
+    windowMs: 20 * 60 * 1000, //15mins
+    max: 5,
+    message: "Too many requests, try again later",
+  })
+);
 
 function verifyToken(req, res, next) {
   const token = req.cookies.accessToken;

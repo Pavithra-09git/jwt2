@@ -6,11 +6,15 @@ import profiles from "../models/profiles.js";
 
 const router = express.Router();
 
-const loginLimiter = rateLimit({
-  windowMs: 20 * 60 * 1000, // 20 mins
-  max: 5,
-  message: "Too many requests, try again later",
-});
+const app = express();
+
+const loginLimiter = app.use(
+  rateLimit({
+    windowMs: 20 * 60 * 1000, //15mins
+    max: 5,
+    message: "Too many requests, try again later",
+  })
+);
 
 function verifyToken(req, res, next) {
   const token = req.cookies.accessToken;
@@ -19,7 +23,7 @@ if (!token) {
   return res.status(401).json({ message: "No token provided" });
 }
 
-
+  const tokenSignature = authHeader.split(" ")[1];
 
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {

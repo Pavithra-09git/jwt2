@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 import helmet from "helmet";
-import cookieParser from "cookie-parser";
+
 import rateLimit from "express-rate-limit";
 import profileRouter from "./routes/profileRouter.js";
 
@@ -19,17 +19,7 @@ app.use(
   })
 );
 
-
-app.use(cookieParser());
-
-app.use(
-  cors({
-    origin: "http://localhost:5173", // React app URL
-    credentials: true, // ✅ allow sending cookies
-  })
-);
-
-
+app.use(cors());
 app.use(express.json());
 app.use(helmet());
 app.use(express.urlencoded({ extended: true }));

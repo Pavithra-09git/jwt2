@@ -19,17 +19,7 @@ app.use(
   })
 );
 
-
-app.use(cookieParser());
-
-app.use(
-  cors({
-    origin: "http://localhost:5173", // React app URL
-    credentials: true, // ✅ allow sending cookies
-  })
-);
-
-
+app.use(cors());
 app.use(express.json());
 app.use(helmet());
 app.use(express.urlencoded({ extended: true }));

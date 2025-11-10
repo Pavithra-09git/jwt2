@@ -6,22 +6,26 @@ import profiles from "../models/profiles.js";
 
 const router = express.Router();
 
-const loginLimiter = rateLimit({
-  windowMs: 20 * 60 * 1000, // 20 mins
-  max: 5,
-  message: "Too many requests, try again later",
-});
+const app = express();
+
+const loginLimiter = app.use(
+  rateLimit({
+    windowMs: 20 * 60 * 1000, //15mins
+    max: 5,
+    message: "Too many requests, try again later",
+  })
+);
 
 function verifyToken(req, res, next) {
-  const token = req.cookies.accessToken;
+  const authHeader = req.headers.authorization;
 
-if (!token) {
-  return res.status(401).json({ message: "No token provided" });
-}
+  if (!authHeader) {
+    return res.status(401).json({ message: "no token provided" });
+  }
 
+  const tokenSignature = authHeader.split(" ")[1];
 
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+  jwt.verify(tokenSignature, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {
       if (err.name === "TokenExpiredError") {
         return res.status(401).json({ message: "access token expired" });
@@ -107,20 +111,7 @@ router.post("/api/login", loginLimiter, async (req, res) => {
 
 
 
-     // ✅ Send tokens in HttpOnly cookies
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: false, // true in production (HTTPS)
-      sameSite: "lax",
-      maxAge: 15 * 60 * 1000, // 15 mins
-    });
-
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-      maxAge: 2 * 24 * 60 * 60 * 1000, // 2 days
-    });
+    
     res.status(200).json({ id:profile._id,accessToken, refreshToken, role: profile.role });
   } catch (error) {
     res.status(500).json({ message: `something went wrong ${error}` });
@@ -179,7 +170,7 @@ router.delete("/:id", verifyToken, async (req, res) => {
 });
 
 router.post("/refresh", async (req, res) => {
-  const token = req.cookies.refreshToken;
+  const { token } = req.body;
 
   if (!token) {
     return res.status(401).json({ message: "no refresh token" });
@@ -202,15 +193,6 @@ router.post("/refresh", async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "15min" }
     );
-
-
-      res.cookie("accessToken", newAccesToken, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-      maxAge: 15 * 60 * 1000,
-    });
-
     res.status(200).json({ accessToken: newAccesToken });
   }catch (error) {
   if (error.name === "TokenExpiredError") {
@@ -242,13 +224,6 @@ router.get("/profile/:id", verifyToken, async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-});
-
-
-router.post("/logout", (req, res) => {
-  res.clearCookie("accessToken");
-  res.clearCookie("refreshToken");
-  res.json({ message: "Logged out successfully" });
 });
 
 export default router;
