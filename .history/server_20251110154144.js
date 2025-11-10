@@ -48,13 +48,13 @@ dotenv.config();
 
 const app = express();
 
-app.use(
-  rateLimit({
-    windowMs: 15 * 60 * 1000, //15mins
-    max: 100,
-    message: "Too many requests, try again later",
-  })
-);
+const loginLimiter = process.env.NODE_ENV === "production"
+  ? rateLimit({
+      windowMs: 20 * 60 * 1000,
+      max: 5,
+      message: "Too many requests, try again later",
+    })
+  : (req, res, next) => next(); // skip limiter in dev
 
 
 app.use(cookieParser());
